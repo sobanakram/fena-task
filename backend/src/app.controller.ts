@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { AppService } from './app.service';
-import { RedisService } from 'nestjs-redis';
+import { RedisService } from '@songkeys/nestjs-redis';
 
 @Controller('api')
 export class AppController {
@@ -12,18 +12,18 @@ export class AppController {
   @Post('sendEmails')
   async sendEmails(@Body() data: { numEmails: number }) {
     const jobId = await this.appService.generateJobId();
-    const emailJob = { jobId, numEmails: data.numEmails };
+    const jobIds = [];
     const redisClient = this.redisService.getClient();
 
-    // Add job to Redis queue
-    await redisClient.rpush('email-queue', JSON.stringify(emailJob));
+    for (let i = 0; i < data.numEmails; i++) {
+      const emailJob = { emailIndex: i + 1, totalEmails: data.numEmails };
+
+      // Add job to Redis queue
+      await redisClient.rpush('email-queue', JSON.stringify(emailJob));
+
+      jobIds.push(jobId);
+    }
 
     return { jobId };
-  }
-
-  @Get('getStatus/:jobId')
-  async getStatus(@Param('jobId') jobId: string) {
-    const status = await this.appService.getJobStatus(jobId);
-    return { status };
   }
 }
