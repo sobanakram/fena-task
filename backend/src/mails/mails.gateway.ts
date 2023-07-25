@@ -10,7 +10,7 @@ export class MailsGateway {
   @WebSocketServer()
   server;
 
-  sendMailsProcessing(message: string) {
+  sendMailsProcessing(message: any) {
     this.server.emit('email-processing', message);
   }
 

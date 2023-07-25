@@ -17,13 +17,22 @@ export class EmailController {
   async sendEmails(@Body() data: { numEmails: number }, @Res() res: Response) {
     const jobId = await this.emailService.generateJobId();
 
+    await this.emailService.pushEmailCounter({
+      jobId,
+      numEmails: data.numEmails,
+    });
+
     res.status(HttpStatus.OK).send({ jobId });
+  }
 
-    for (let i = 0; i < data.numEmails; i++) {
-      const emailJob = { emailIndex: i + 1, totalEmails: data.numEmails };
-
-      // Add job to Redis queue
-      await this.emailService.pushToQueue(emailJob);
+  @Get('job-status/:jobId')
+  async getJobStatus(@Res() res: Response, @Param('jobId') jobId: string) {
+    try {
+      const delayedJobs = await this.emailService.getQueueStatus(jobId);
+      res.status(HttpStatus.OK).json({delayedJobs});
+    //   return delayedJobs;
+    } catch (err) {
+      return 'error';
     }
   }
 }

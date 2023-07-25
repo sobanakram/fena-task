@@ -1,7 +1,7 @@
 // backend/src/email/email.service.ts
 import { Injectable } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
-import { Queue } from 'bull';
+import { Job, Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 
 @Injectable()
@@ -17,13 +17,24 @@ export class EmailService {
     return jobId;
   }
 
-  async pushToQueue(emailJob: any): Promise<void> {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        this.emailsQueue.add('email-process', emailJob);
-        resolve();
-      }, 1000);
-    });
+  async pushToQueue(emailJob: any): Promise<Job> {
+    return this.emailsQueue.add('email-process', emailJob);
+  }
+
+  async pushEmailCounter(emailJob: any): Promise<Job> {
+    return await this.emailsQueue.add('email-bunch', emailJob);
+  }
+
+  async getQueueStatus(jobId: string) {
+    const jobs = await this.emailsQueue.getJobs(['delayed']);
+    let delayedJob = 0;
+    for (let i = 0; i < jobs?.length; i++) {
+      console.log(jobs[i].data);
+      if (jobs[i]?.data?.jobId === jobId) {
+        delayedJob += 1;
+      }
+    }
+    return delayedJob;
   }
 
   async getJobStatus(jobId: string): Promise<string> {

@@ -30,7 +30,7 @@ function App() {
   useEffect(() => {
 
     if(localStorage.getItem('job_id')){
-      setJobId(localStorage.getItem('job_id'))
+      getJobStatus(localStorage.getItem('job_id'))
     }
     const socket = io(BASE_URL); // Replace with your NestJS server URL
 
@@ -40,21 +40,43 @@ function App() {
 
     socket.on('email-processing', (data) => {
       console.log('Received message:', data);
-      setEmailprocessed(data)
+      if(localStorage.getItem('job_id') === data?.jobId){
+        setEmailprocessed(data?.currentMailCounter)
+      }
+      
       // Handle incoming messages from the server
     });
 
     socket.on('email-completed', (data) => {
-      console.log('Email processed')
-      localStorage.removeItem('job_id')
-      setJobId(prev => '')
-      setEmailprocessed(0)
+      if(localStorage.getItem("job_id") === data){
+        console.log('Email processed')
+        localStorage.removeItem('job_id')
+        setJobId(prev => '')
+        setEmailprocessed(0)
+      }
     })
 
     return () => {
       socket.disconnect(); // Clean up the WebSocket connection on unmounting
     };
   }, []);
+
+  const getJobStatus = async (jobId) => {
+    try {
+      const response = await axios.get(`${BASE_URL}/api/job-status/${jobId}`);
+      console.log({response: response.data})
+      if(response?.data?.delayedJobs !== 0){
+        setJobId(localStorage.getItem('job_id'))
+      }
+      else{
+        localStorage.removeItem('job_id')
+        setJobId(prev => '')
+        setEmailprocessed(0)
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
 
   return (

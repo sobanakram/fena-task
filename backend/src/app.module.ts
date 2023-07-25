@@ -12,6 +12,10 @@ import { EmailModule } from './email/email.module';
         host: 'localhost',
         port: 6379,
       },
+      limiter: {
+        max: 1,
+        duration: 2000,
+      },
     }),
     EmailModule,
   ],
