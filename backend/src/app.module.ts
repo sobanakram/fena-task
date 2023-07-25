@@ -1,19 +1,21 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { RedisModule } from '@songkeys/nestjs-redis';
-import { EmailGateway } from './email.gateway';
+import { MailsGateway } from './mails/mails.gateway';
+import { BullModule } from '@nestjs/bull';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
-    RedisModule.forRoot({
-      config: {
-        host: 'redis',
+    BullModule.forRoot({
+      redis: {
+        host: 'localhost',
         port: 6379,
       },
     }),
+    EmailModule,
   ],
   controllers: [AppController],
-  providers: [AppService, EmailGateway],
+  providers: [AppService, MailsGateway],
 })
 export class AppModule {}
