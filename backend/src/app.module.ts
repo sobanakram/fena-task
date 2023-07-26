@@ -9,12 +9,12 @@ import { EmailModule } from './email/email.module';
   imports: [
     BullModule.forRoot({
       redis: {
-        host: 'localhost',
+        host: 'redis',
         port: 6379,
       },
       limiter: {
         max: 1,
-        duration: 2000,
+        duration: 1000,
       },
     }),
     EmailModule,

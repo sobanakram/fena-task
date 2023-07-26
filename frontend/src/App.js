@@ -98,7 +98,7 @@ function App() {
           </button>
         </>
         :
-        <p>Email processed: {emailProcessed}</p>
+        <p>Email processe ({jobId}): {emailProcessed}</p>
         }
       </header>
     </div>
